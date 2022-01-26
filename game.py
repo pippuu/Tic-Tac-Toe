@@ -2,6 +2,8 @@ import os
 
 def visualizeBoard(board):
     """
+    This function is used to print out the board state on console.
+    // Box (Board) State
     box = 0 -> empty
     box = 1 -> O
     box = 2 -> X
@@ -26,6 +28,14 @@ def visualizeBoard(board):
     print(f"\t  {translatedBoard[6]} | {translatedBoard[7]} | {translatedBoard[8]} ")
 
 def nextTurn(board, round):
+    """
+    This function is used for player input. If it's on odd round then the player "1",
+    if its even then the player "2"
+    // Box (Board) State
+    box = 0 -> empty
+    box = 1 -> O
+    box = 2 -> X
+    """
     endTurn = 0
     while endTurn == 0 :
         visualizeBoard(board)
@@ -43,15 +53,18 @@ def nextTurn(board, round):
         move = int(input('\nYour move => ')) - 1
 
         if move < len(listPos):
-            if (int(round % 2 == 1)+1) == 1:
+            if (int(round % 2 == 1)+1) == 1: # Player 1 got to play
                 board[listPos[move]] = 1
-            elif (int(round % 2 == 1)+1) == 2:
+            elif (int(round % 2 == 1)+1) == 2: # Player 2 got to play
                 board[listPos[move]] = 2
             endTurn = 1
 
     return board
 
 def ruleChecker(board):
+    """
+    This function is used to check if there's a valid winner
+    """
     visualizeBoard(board)
     if (
         ((board[0] == 1) and (board[1] == 1) and (board[2] == 1))
@@ -76,6 +89,9 @@ def ruleChecker(board):
         return 0
 
 def gamePlay():
+    """
+    Main Game function.
+    """
     board = [0,0,0,0,0,0,0,0,0]
     winStatus = 0
     round = 0
