@@ -4,7 +4,7 @@ from copy import deepcopy
 class Game:
     board = [0,0,0,0,0,0,0,0,0]
     num_action = 9
-    num_state = 10
+    num_state = 9
     
     player1_label = 1
     player2_label = 2
@@ -17,7 +17,6 @@ class Game:
     
     def create_state(self):
         arr = deepcopy(self.board)
-        arr.append(self.round)
         return arr
     
     def reset(self):
@@ -73,9 +72,9 @@ class Game:
         reward = 1
         if self.rule_check():
             done = True
+            reward = 4
             
         if round == 9:
-            reward = -9
             done = True
             
         return self.create_state(), reward, done
