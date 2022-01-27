@@ -1,6 +1,6 @@
 # ref: https://www.youtube.com/watch?v=5fHngyN8Qhw
 
-from tensorflow.keras.layers import Dense, Activation
+from tensorflow.keras.layers import Dense, Activation, Dropout
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.optimizers import Adam
 import numpy as np
@@ -47,13 +47,12 @@ class ReplayBuffer(object):
 
 ###############################################################################
 
-def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims):
-    model = Sequential([
-                Dense(fc1_dims, input_shape=(input_dims,)),
-                Activation('relu'),
-                Dense(fc2_dims),
-                Activation('softmax'),
-                Dense(n_actions)])
+def build_dqn(lr, n_actions, input_dims):
+    model = Sequential()
+    model.add(Dense(128, activation="linear", input_shape=(input_dims,)))
+    model.add(Dropout(0.2))
+    model.add(Dense(128, activation="softmax"))
+    model.add(Dense(n_actions))
 
     model.compile(optimizer=Adam(lr=lr), loss='mse')
 
@@ -61,7 +60,7 @@ def build_dqn(lr, n_actions, input_dims, fc1_dims, fc2_dims):
 
 class DDQNAgent(object):
     def __init__(self, alpha, gamma, n_actions, epsilon, batch_size,
-                 input_dims, epsilon_dec=0.996,  epsilon_end=0.01,
+                 input_dims, epsilon_dec=0.9999,  epsilon_end=0.1,
                  mem_size=1000000, fname='ddqn_model.h5', replace_target=100):
         self.action_space = [i for i in range(n_actions)]
         self.n_actions = n_actions
@@ -74,22 +73,33 @@ class DDQNAgent(object):
         self.replace_target = replace_target
         self.memory = ReplayBuffer(mem_size, input_dims, n_actions,
                                    discrete=True)
-        self.q_eval = build_dqn(alpha, n_actions, input_dims, 256, 256)
-        self.q_target = build_dqn(alpha, n_actions, input_dims, 256, 256)
+        self.q_eval = build_dqn(alpha, n_actions, input_dims)
+        self.q_target = build_dqn(alpha, n_actions, input_dims)
 
     def remember(self, state, action, reward, new_state, done):
         self.memory.store_transition(state, action, reward, new_state, done)
+        
+    def available_move(self,arr) -> np.array:
+        fin = []
+        for i in range(len(arr)):
+            if arr[i] == 0:
+                fin.append(i)
+        
+        return np.array(fin)
 
     def choose_action(self, state):
+        valid_move = self.available_move(state)
         state = np.array(state)
         state = state[np.newaxis, :]
         rand = np.random.random()
-        if rand < self.epsilon:
-            action = np.random.choice(self.action_space)
-        else:
-            actions = self.q_eval.predict(state)
-            action = np.argmax(actions)
-
+        action = np.random.choice(valid_move)
+        if rand >= self.epsilon:
+            actions = self.q_eval.predict(state)[0]
+            pred = np.argsort(actions, kind='heapsort')[::-1]
+            for i in pred:
+                if i in valid_move:
+                    action = i
+                    return i
         return action
 
     def learn(self):

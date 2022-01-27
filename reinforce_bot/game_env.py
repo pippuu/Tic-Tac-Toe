@@ -4,7 +4,8 @@ from copy import deepcopy
 class Game:
     board = [0,0,0,0,0,0,0,0,0]
     num_action = 9
-    num_state = 9
+    num_state = 10
+    
     
     player1_label = 1
     player2_label = 2
@@ -17,12 +18,18 @@ class Game:
     
     def create_state(self):
         arr = deepcopy(self.board)
+        # Buat state untuk nge save dia pemain 1 atau 2
+        if self.round % 2 == 0:
+            player_num = 1
+        else:
+            player_num = 2
+        arr.append(player_num)
+        
         return arr
     
     def reset(self):
         self.board = [0,0,0,0,0,0,0,0,0]
         self.round = 0
-        
         return self.create_state()
         
     def rule_check(self):
@@ -56,7 +63,7 @@ class Game:
         
         return arr
         
-    def step(self, idx):
+    def step(self, idx: int):
         done = False
         # Not valid moves! Get minus rewards
         if idx not in self.available_move():
@@ -69,13 +76,15 @@ class Game:
             self.board[idx] = self.player2_label
         
         self.round += 1
-        reward = 1
+        reward = -1
         if self.rule_check():
             done = True
-            reward = 4
+            reward = 10
+            return self.create_state(), reward, done
             
-        if round == 9:
-            done = True
+        if self.round >= 8:
+            reward = 5
+            if self.round == 9: done = True
             
         return self.create_state(), reward, done
     

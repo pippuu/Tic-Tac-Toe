@@ -1,4 +1,5 @@
 import os
+from reinforce_bot.bot_interface import ReinforceBot
 
 def visualizeBoard(board):
     """
@@ -88,7 +89,7 @@ def ruleChecker(board):
     else:
         return 0
 
-def gamePlay():
+def gamePlay2Players():
     """
     Main Game function.
     """
@@ -105,18 +106,56 @@ def gamePlay():
                 print("No one wins!")
         else:
             print(f'Player {int(round % 2 == 1)+1} won the game!')
+            
+def gamePlayBot(bot_player: int):
+    """
+    Main Game Function with BOT
+    """
+    board = [0,0,0,0,0,0,0,0,0]
+    winStatus = 0
+    round = 0
+    botAgent = ReinforceBot(bot_player)
+    while (round < 9) and (winStatus == 0):
+        if (round % 2) == (bot_player - 1):
+            idx = botAgent.action(board)
+            board[idx] = bot_player
+        else:
+            board = nextTurn(board, round)
+            
+        winStatus = ruleChecker(board)
+        input('\nPress enter to continue => ')
+        if winStatus == 0:
+            round += 1
+            if round == 9:
+                print("No one wins!")
+        else:
+            print(f'Player {int(round % 2 == 1)+1} won the game!')
+    
+            
+def botMenu():
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print('=========== REINFORCEMENT BOT MENU ===========\n')
+    print('1. Bot play first')
+    print('2. Bot play second')
+    print('3. Back\n')
+    optSelection = input("Select your input => ")
+    if int(optSelection) < 3 and int(optSelection) > 0:
+        gamePlayBot(int(optSelection))
 
 
 def mainMenu():
     exitStatus = 0
     while exitStatus == 0:
-        os.system('cls' if os.name == 'nt' else 'clear')
+        # os.system('cls' if os.name == 'nt' else 'clear')
         print('=========== MAIN MENU ===========\n')
         print('1. Start the game')
-        print('2. Exit the game\n')
+        print('2. Play with reinfoce bot')
+        print('3. Exit the game\n')
         optSelection = input("Select your input => ")
         if optSelection == "1":
-            gamePlay()
+            gamePlay2Players()
             exitStatus = 1
         elif optSelection == "2":
+            botMenu()
+        elif optSelection == "3":
             exitStatus = 1
